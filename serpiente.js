@@ -14,6 +14,8 @@
       
     let intervaloSerpiente = null;
     let direccionActual = "derecha";
+    let velocidad = 300;    
+    let juegoTerminado = false;
 
     const comida = {
     x: Math.floor(Math.random() * (canvas.width / TAMANIO_CELDA)),
@@ -27,25 +29,28 @@
     let puntaje = 0; 
 
   function reiniciarJuego() {
-  pausarJuego(); // Detiene el movimiento
+  pausarJuego(); // Detiene cualquier partida anterior
 
-  serpiente.length = 0; // Vacía la serpiente
+  serpiente.length = 0;
   serpiente.push(
     { x: 10, y: 10 },
     { x: 10, y: 9 },
     { x: 9, y: 9 },
     { x: 8, y: 9 }
-  ); // Recupera su forma inicial
+  );
 
   puntaje = 0;
-  document.getElementById("puntaje").innerText = puntaje;
   direccionActual = "derecha";
+  juegoTerminado = false; // Quita el GAME OVER
+
+  document.getElementById("puntaje").innerText = puntaje;
+  document.getElementById("estado").innerText = "Listo";
+  document.getElementById("mensaje").innerText =
+    "Pulsa Iniciar para comenzar.";
 
   generarComida();
-  dibujarTodo(); // Muestra los cambios
+  dibujarTodo();
 }
-comida.x = 11; // Una columna a la derecha de la cabeza
-comida.y = 10; // Misma fila que la cabeza
 
 dibujarTodo();
 
@@ -150,11 +155,39 @@ function moverAbajo() {
 }
 
 function cambiarDireccion(direccion) {
-  direccionActual = direccion; 
-}
+  const cabeza = serpiente[0];
+  const cuello = serpiente[1];
 
+  // Calcula dónde quedaría la cabeza con la dirección elegida
+  let siguienteX = cabeza.x;
+  let siguienteY = cabeza.y;
+
+  if (direccion === "derecha") {
+    siguienteX++;
+  } else if (direccion === "izquierda") {
+    siguienteX--;
+  } else if (direccion === "arriba") {
+    siguienteY--;
+  } else if (direccion === "abajo") {
+    siguienteY++;
+  } else {
+    return; // Ignora direcciones desconocidas
+  }
+
+  // Si intentaría ocupar el cuello, rechaza el cambio
+  if (cuello &&
+      siguienteX === cuello.x &&
+      siguienteY === cuello.y) {
+    return;
+  }
+
+  direccionActual = direccion;
+}
 function moverSerpiente() {
-  // Guarda la cola antes de que el movimiento la elimine
+  if (juegoTerminado) {
+    return; // No permite seguir moviéndose
+  }
+
   const colaAnterior = serpiente[serpiente.length - 1];
 
   if (direccionActual === "derecha") {
@@ -167,23 +200,35 @@ function moverSerpiente() {
     moverAbajo();
   }
 
-  if (atrapaComida()) {
-    puntaje++; // Suma un punto
-    console.log("Puntaje:", puntaje);
-    document.getElementById("puntaje").innerText = puntaje;
-
-    serpiente.push(colaAnterior);
-    console.log("Cuadros:", serpiente.length); // Recupera la cola: crece un cuadro
-    generarComida();              // Coloca otra comida
+  if (tocaBorde()) {
+    pausarJuego(); // Detiene el temporizador
+    juegoTerminado = true;
+    document.getElementById("estado").innerText = "GAME OVER";
+    document.getElementById("mensaje").innerText =
+      "¡Chocaste con el borde! Pulsa Reiniciar.";
+    return; // Termina aquí, sin revisar comida
   }
 
-  dibujarTodo(); // Actualiza la pantalla
+  if (atrapaComida()) {
+    puntaje++;
+    document.getElementById("puntaje").innerText = puntaje;
+    serpiente.push(colaAnterior);
+    generarComida();
+  }
+
+  dibujarTodo();
 }
 
 function iniciarJuego() {
+  if (juegoTerminado) {
+    return; // Primero debe reiniciar si perdió
+  }
+
   if (intervaloSerpiente === null) {
-  
-    intervaloSerpiente = setInterval(moverSerpiente, 1000);
+    intervaloSerpiente = setInterval(moverSerpiente, velocidad);
+    document.getElementById("estado").innerText = "Jugando";
+    document.getElementById("mensaje").innerText =
+      "Usa las flechas del juego para llegar a la comida.";
   }
 }
 
@@ -217,4 +262,13 @@ function generarComida() {
       parte.x === comida.x && parte.y === comida.y
     )
   );
+}
+
+function tocaBorde() {
+  const cabeza = serpiente[0];
+  const columnas = canvas.width / TAMANIO_CELDA;
+  const filas = canvas.height / TAMANIO_CELDA;
+
+  return cabeza.x < 0 || cabeza.x >= columnas ||
+         cabeza.y < 0 || cabeza.y >= filas;
 }
