@@ -3,6 +3,7 @@
     const canvas = document.getElementById("canvasJuego");
     const ctx = canvas.getContext("2d");
     const TAMANIO_CELDA = 25;
+    
 
 
     
@@ -21,6 +22,11 @@
     function dibujarTodo() {
       limpiarCanvas();
       dibujarTablero();
+      pintarParte(5,5);
+      pintarParte(10,2);
+      pintarParte(5,39);
+      pintarParte(0,5);
+      pintarParte(0,39);
     }
 
     function dibujarTablero(){
@@ -43,6 +49,16 @@
       }
       
     }
-
+    
+    function pintarParte (lineaX, lineaY, color ="red"){
+      
+      const x = lineaX * TAMANIO_CELDA;
+      const y = lineaY * TAMANIO_CELDA;
+      ctx.fillStyle = color;
+      ctx.fillRect(x,y,TAMANIO_CELDA,TAMANIO_CELDA);
+      ctx.strokeStyle = "#062562";
+      ctx.strokeRect(x,y,TAMANIO_CELDA, TAMANIO_CELDA);
+      
+    }
 
 
