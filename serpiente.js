@@ -16,6 +16,8 @@
     let direccionActual = "derecha";
     let velocidad = 300;    
     let juegoTerminado = false;
+    let segundos = 0;
+    let intervaloTiempo = null;
 
     const comida = {
     x: Math.floor(Math.random() * (canvas.width / TAMANIO_CELDA)),
@@ -29,7 +31,9 @@
     let puntaje = 0; 
 
   function reiniciarJuego() {
-  pausarJuego(); // Detiene cualquier partida anterior
+  pausarJuego(); 
+  segundos = 0;
+  document.getElementById("tiempo").innerText = "0 s";
 
   serpiente.length = 0;
   serpiente.push(
@@ -229,12 +233,19 @@ function iniciarJuego() {
     document.getElementById("estado").innerText = "Jugando";
     document.getElementById("mensaje").innerText =
       "Usa las flechas del juego para llegar a la comida.";
+    intervaloTiempo = setInterval(function () {
+    segundos++; // Suma un segundo
+    document.getElementById("tiempo").innerText = segundos + " s";
+}, 1000);
   }
+  
 }
 
 function pausarJuego() {
   clearInterval(intervaloSerpiente); 
-  intervaloSerpiente = null;         
+  intervaloSerpiente = null;
+  clearInterval(intervaloTiempo); 
+intervaloTiempo = null;         
 }
 
 function pintarComida() {
